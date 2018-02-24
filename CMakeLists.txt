@@ -137,6 +137,7 @@ set(SERVER_SOURCE_FILES src/server/server.cpp src/server/server_minecraft_app.h 
 
 if(APPLE)
     set(COMMON_SOURCE_FILES ${COMMON_SOURCE_FILES} src/minecraft/string_darwin.cpp src/minecraft/function.h)
+    set(COMMON_SOURCE_FILES ${COMMON_SOURCE_FILES} src/common/throttle.cpp src/common/throttle.h)
 else()
     set(COMMON_SOURCE_FILES ${COMMON_SOURCE_FILES} src/minecraft/string_linux.cpp)
     set(CLIENT_SOURCE_FILES ${CLIENT_SOURCE_FILES} src/client/amdfix.s src/common/openssl_multithread.cpp src/common/openssl_multithread.h)

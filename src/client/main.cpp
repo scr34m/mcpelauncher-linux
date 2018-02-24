@@ -65,6 +65,9 @@ extern "C" {
 #include <GLFW/glfw3.h>
 #include "window_glfw.h"
 #endif
+#ifdef __APPLE__
+#include "../common/throttle.h"
+#endif
 
 extern "C" {
 
@@ -342,6 +345,9 @@ int main(int argc, char *argv[]) {
 #else
     GraphicsApi graphicsApi = GraphicsApi::OPENGL_ES2;
 #endif
+#ifdef __APPLE__
+    float cpuThrottle = -1;
+#endif
 
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-s") == 0 || strcmp(argv[i], "--scale") == 0) {
@@ -368,6 +374,11 @@ int main(int argc, char *argv[]) {
             std::cout << "--gl-core: Using OpenGL Core profile.\n";
             graphicsApi = GraphicsApi::OPENGL;
 #endif
+#ifdef __APPLE__
+        } else if (strcmp(argv[i], "--cpu-throttle") == 0) {
+            i++;
+            cpuThrottle = (float) std::stoi(argv[i]);
+#endif
         } else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
             std::cout << "Help\n";
             std::cout << "--help               Shows this help information\n";
@@ -380,6 +391,9 @@ int main(int argc, char *argv[]) {
             std::cout << "--amd-workaround     Fixes crashes on pre-i686 and AMD CPUs\n\n";
 #ifdef USE_GLFW
             std::cout << "--gl-core            Uses OpenGL 3.2+ core profile instead of GLES\n\n";
+#endif
+#ifdef __APPLE__
+            std::cout << "--cpu-throttle <%>   Throttle CPU usage 0 - " << system_ncpu() * 100 << " %\n\n";
 #endif
             std::cout << "EGL Options\n";
             std::cout << "-display <display>  Sets the display\n";
@@ -394,6 +408,17 @@ int main(int argc, char *argv[]) {
     if (enableStackTracePrinting) {
         registerCrashHandler();
     }
+
+#ifdef __APPLE__
+    if (cpuThrottle > -1) {
+        pid_t pid = getpid();
+        std::cout << "CPU throtting PID " << pid << " at " << cpuThrottle << " %\n";
+        
+        pthread_t tthr;
+        // pthread_create(&tthr, NULL, threads_info_thread, &pid);
+        new std::thread(threads_info_thread, cpuThrottle / 100, pid);
+    }
+#endif
 
     setenv("LC_ALL", "C", 1); // HACK: Force set locale to one recognized by MCPE so that the outdated C++ standard library MCPE uses doesn't fail to find one
 
